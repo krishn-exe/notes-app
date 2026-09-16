@@ -1,14 +1,14 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 
-def home(request):
-    return HttpResponse("Welcome to the Notes App")
+def index(request):
+    return render(request, "index.html")
 
 def register(request):
-    return HttpResponse("Register Page")
+    return render(request, "register.html")
 
 def login(request):
-    return HttpResponse("Login Page")
+    return render(request, "login.html")
 
 def logout(request):
-    return HttpResponse("Logout Page")
+    return render(request, "logout.html")
