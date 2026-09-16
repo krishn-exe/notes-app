@@ -4,27 +4,100 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Notes app | Login</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: #f5f5f5;
+      color: #333;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .card {
+      background: #fff;
+      padding: 40px 45px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 420px;
+    }
+    h1 { margin-bottom: 25px; font-size: 24px; text-align: center; }
+    .form-group { margin-bottom: 18px; }
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 500;
+      font-size: 14px;
+    }
+    .form-group input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-size: 14px;
+    }
+    .form-group input:focus {
+      outline: none;
+      border-color: #333;
+    }
+    button {
+      width: 100%;
+      padding: 11px;
+      background-color: #333;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      font-size: 15px;
+      cursor: pointer;
+      margin-top: 5px;
+    }
+    button:hover { background-color: #555; }
+    .footer {
+      text-align: center;
+      margin-top: 18px;
+      font-size: 14px;
+      color: #666;
+    }
+    .footer a { color: #333; font-weight: 500; }
+    .error-msg {
+      background-color: #fdecea;
+      color: #d32f2f;
+      padding: 10px 14px;
+      border-radius: 5px;
+      margin-bottom: 18px;
+      font-size: 14px;
+    }
+    .error { color: #d32f2f; font-size: 13px; margin-top: 4px; }
+  </style>
 </head>
 <body>
-  <h1> Login </h1>
+  <div class="card">
+    <h1>Login</h1>
 
-  {% if messages %}
-    {% for message in messages %}
-      <p class="{{ message.tags }}">{{ message }}</p>
-    {% endfor %}
-  {% endif %}
+    {% if form.non_field_errors %}
+      {% for error in form.non_field_errors %}
+        <div class="error-msg">{{ error }}</div>
+      {% endfor %}
+    {% endif %}
 
-  <form action="" method="POST">
-    {% csrf_token %}
-    {% for field in form %}
-      <div>
-        <label for="">{{ field.label }}</label>
-        <input type="{{ field.field.widget.input_type }}" name="{{ field.name }}" value="{{ field.value }}">
-      </div>
-    {% endfor %}
-    <button type="submit">Login</button>
-  </form>
-
-  <p>Don't have an account? <a href="{% url 'register' %}">Register</a></p>
+    <form action="" method="POST">
+      {% csrf_token %}
+      {% for field in form %}
+        <div class="form-group">
+          <label>{{ field.label }}</label>
+          <input type="{{ field.field.widget.input_type }}" name="{{ field.name }}" value="{{ field.value|default_if_none:'' }}">
+          {% for error in field.errors %}
+            <p class="error">{{ error }}</p>
+          {% endfor %}
+        </div>
+      {% endfor %}
+      <button type="submit">Login</button>
+    </form>
+    <div class="footer">
+      <p>Don't have an account? <a href="{% url 'register' %}">Register</a></p>
+    </div>
+  </div>
 </body>
 </html>
