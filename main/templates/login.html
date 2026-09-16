@@ -7,5 +7,24 @@
 </head>
 <body>
   <h1> Login </h1>
+
+  {% if messages %}
+    {% for message in messages %}
+      <p class="{{ message.tags }}">{{ message }}</p>
+    {% endfor %}
+  {% endif %}
+
+  <form action="" method="POST">
+    {% csrf_token %}
+    {% for field in form %}
+      <div>
+        <label for="">{{ field.label }}</label>
+        <input type="{{ field.field.widget.input_type }}" name="{{ field.name }}" value="{{ field.value }}">
+      </div>
+    {% endfor %}
+    <button type="submit">Login</button>
+  </form>
+
+  <p>Don't have an account? <a href="{% url 'register' %}">Register</a></p>
 </body>
 </html>

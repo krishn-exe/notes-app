@@ -7,5 +7,17 @@
 </head>
 <body>
   <h1> Register </h1>
+
+  <form action = "" method = "POST">
+    {% csrf_token %}
+    {% for field in form %}
+     <div>
+      <label for=""> {{field.label}} </label>
+      <input type = "{{field.field.widget.input_type}}" name = "{{field.name}}" value = "{{field.value}}">
+        </div>
+      {% endfor %}
+     </div>
+     <button type="submit"> Register </button>
+  </form>
 </body>
 </html>

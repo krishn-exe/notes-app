@@ -15,7 +15,7 @@ import os
 import dotenv
 
 #Load environment variables from .env file
-dotenv.load_dotenv()
+dotenv.load_dotenv(override=True)
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -87,6 +87,7 @@ DATABASES = {
         'PASSWORD': os.getenv('PG_PASSWORD'),
         'HOST': os.getenv('PG_HOST'),
         'PORT': os.getenv('PG_PORT'),
+        'OPTIONS': {'sslmode': 'require'},
     }
 }
 
