@@ -42,6 +42,44 @@
       outline: none;
       border-color: #333;
     }
+    .form-group input.input-error {
+      border-color: #d32f2f;
+    }
+    .password-rules {
+      list-style: none;
+      padding: 0;
+      margin: 10px 0 16px 0;
+      font-size: 13px;
+    }
+    .password-rules li {
+      display: flex;
+      align-items: center;
+      margin-bottom: 5px;
+      color: #777;
+      transition: color 0.15s ease;
+    }
+    .password-rules li.valid {
+      color: #2e7d32;
+      font-weight: 500;
+    }
+    .password-rules li.invalid {
+      color: #777;
+    }
+    .rule-icon {
+      display: inline-block;
+      width: 16px;
+      margin-right: 6px;
+      font-weight: bold;
+    }
+    .submit-error {
+      background-color: #fdecea;
+      color: #d32f2f;
+      padding: 10px 12px;
+      border-radius: 5px;
+      font-size: 13px;
+      margin-bottom: 16px;
+      display: none;
+    }
     button {
       width: 100%;
       padding: 11px;
@@ -67,7 +105,10 @@
 <body>
   <div class="card">
     <h1>Register</h1>
-    <form action="" method="POST">
+
+    <div id="submitError" class="submit-error"></div>
+
+    <form id="registerForm" action="" method="POST" novalidate>
       {% csrf_token %}
       {% for field in form %}
         <div class="form-group">
@@ -78,11 +119,102 @@
           {% endfor %}
         </div>
       {% endfor %}
-      <button type="submit">Register</button>
+
+      <ul class="password-rules" id="passwordRules">
+        <li id="ruleLength"><span class="rule-icon">&#9675;</span> At least 8 characters</li>
+        <li id="ruleLetter"><span class="rule-icon">&#9675;</span> Contains at least one letter</li>
+        <li id="ruleNumber"><span class="rule-icon">&#9675;</span> Contains at least one number</li>
+        <li id="ruleMatch"><span class="rule-icon">&#9675;</span> Passwords match</li>
+      </ul>
+
+      <button type="submit" id="submitBtn">Register</button>
     </form>
     <div class="footer">
       <p>Already have an account? <a href="{% url 'login' %}">Login</a></p>
     </div>
   </div>
+
+  <script>
+    const form = document.getElementById('registerForm');
+    const pwd1 = document.querySelector('input[name="password1"]');
+    const pwd2 = document.querySelector('input[name="password2"]');
+    const submitError = document.getElementById('submitError');
+
+    const ruleLength = document.getElementById('ruleLength');
+    const ruleLetter = document.getElementById('ruleLetter');
+    const ruleNumber = document.getElementById('ruleNumber');
+    const ruleMatch = document.getElementById('ruleMatch');
+
+    function updateRule(elem, isValid) {
+      if (!elem) return;
+      const icon = elem.querySelector('.rule-icon');
+      if (isValid) {
+        elem.classList.remove('invalid');
+        elem.classList.add('valid');
+        if (icon) icon.innerHTML = '&#10003;'; // Checkmark ✓
+      } else {
+        elem.classList.remove('valid');
+        elem.classList.add('invalid');
+        if (icon) icon.innerHTML = '&#9675;'; // Circle ○
+      }
+    }
+
+    function validate() {
+      const val1 = pwd1 ? pwd1.value : '';
+      const val2 = pwd2 ? pwd2.value : '';
+
+      const isLengthValid = val1.length >= 8;
+      const isLetterValid = /[a-zA-Z]/.test(val1);
+      const isNumberValid = /[0-9]/.test(val1);
+      const isMatchValid = val1.length > 0 && val1 === val2;
+
+      updateRule(ruleLength, isLengthValid);
+      updateRule(ruleLetter, isLetterValid);
+      updateRule(ruleNumber, isNumberValid);
+      updateRule(ruleMatch, isMatchValid);
+
+      return isLengthValid && isLetterValid && isNumberValid && isMatchValid;
+    }
+
+    if (pwd1) {
+      pwd1.addEventListener('input', () => {
+        validate();
+        pwd1.classList.remove('input-error');
+        submitError.style.display = 'none';
+      });
+    }
+
+    if (pwd2) {
+      pwd2.addEventListener('input', () => {
+        validate();
+        pwd2.classList.remove('input-error');
+        submitError.style.display = 'none';
+      });
+    }
+
+    form.addEventListener('submit', function(e) {
+      const isValid = validate();
+      if (!isValid) {
+        e.preventDefault(); // Stop submission!
+        submitError.textContent = 'Please make sure your password satisfies all requirements before registering.';
+        submitError.style.display = 'block';
+
+        const val1 = pwd1 ? pwd1.value : '';
+        const val2 = pwd2 ? pwd2.value : '';
+
+        if (val1.length < 8 || !/[a-zA-Z]/.test(val1) || !/[0-9]/.test(val1)) {
+          if (pwd1) {
+            pwd1.classList.add('input-error');
+            pwd1.focus();
+          }
+        } else if (val1 !== val2) {
+          if (pwd2) {
+            pwd2.classList.add('input-error');
+            pwd2.focus();
+          }
+        }
+      }
+    });
+  </script>
 </body>
 </html>
