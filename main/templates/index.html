@@ -69,6 +69,19 @@
       color: #999;
       margin-bottom: 10px;
     }
+    .note-images {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 12px 0;
+    }
+    .note-img {
+      max-width: 100%;
+      max-height: 240px;
+      border-radius: 6px;
+      object-fit: cover;
+      border: 1px solid #e2e2e2;
+    }
     .note-card .actions a {
       font-size: 13px;
       margin-right: 15px;
@@ -107,6 +120,13 @@
           <h3>{{ note.title }}</h3>
           <p class="meta">Last updated: {{ note.updated_at|date:"M d, Y  h:i A" }}</p>
           <p>{{ note.content|truncatewords:30 }}</p>
+          {% if note.images.all %}
+            <div class="note-images">
+              {% for img in note.images.all %}
+                <img src="{% url 'serve_image' img.id %}" alt="Attachment" class="note-img">
+              {% endfor %}
+            </div>
+          {% endif %}
           <div class="actions">
             <a href="{% url 'edit_note' note.id %}">Edit</a>
             <a href="{% url 'delete_note' note.id %}" class="delete">Delete</a>

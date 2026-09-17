@@ -31,7 +31,7 @@
       font-weight: 500;
       font-size: 14px;
     }
-    .form-group input, .form-group textarea {
+    .form-group input[type="text"], .form-group textarea {
       width: 100%;
       padding: 10px 12px;
       border: 1px solid #ddd;
@@ -43,9 +43,13 @@
       min-height: 150px;
       resize: vertical;
     }
-    .form-group input:focus, .form-group textarea:focus {
+    .form-group input[type="text"]:focus, .form-group textarea:focus {
       outline: none;
       border-color: #333;
+    }
+    .form-group input[type="file"] {
+      font-size: 14px;
+      padding: 8px 0;
     }
     .buttons {
       display: flex;
@@ -72,7 +76,7 @@
 <body>
   <div class="card">
     <h1>New Note</h1>
-    <form action="" method="POST">
+    <form action="" method="POST" enctype="multipart/form-data">
       {% csrf_token %}
       {% for field in form %}
         <div class="form-group">
@@ -87,6 +91,10 @@
           {% endfor %}
         </div>
       {% endfor %}
+      <div class="form-group">
+        <label>Attach Image</label>
+        <input type="file" name="image" accept="image/*">
+      </div>
       <div class="buttons">
         <a href="{% url 'index' %}" class="btn btn-secondary">Cancel</a>
         <button type="submit" class="btn btn-primary">Create</button>

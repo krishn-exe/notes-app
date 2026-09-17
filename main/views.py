@@ -2,8 +2,11 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login as auth_login, logout as auth_logout
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_protect
+from django.http import HttpResponseForbidden, FileResponse
+from django.conf import settings
 from . forms import RegisterForm, LoginForm, NoteForm
-from . models import Note
+from . models import Note, Images
+import boto3
 
 @csrf_protect
 def register(request):
@@ -45,6 +48,8 @@ def create_note(request):
             note = form.save(commit=False)
             note.user = request.user
             note.save()
+            if request.FILES.get('image'):
+                Images.objects.create(note=note, image=request.FILES['image'])
             return redirect("index")
     else:
         form = NoteForm()
@@ -58,6 +63,8 @@ def edit_note(request, note_id):
         form = NoteForm(request.POST, instance=note)
         if form.is_valid():
             form.save()
+            if request.FILES.get('image'):
+                Images.objects.create(note=note, image=request.FILES['image'])
             return redirect("index")
     else:
         form = NoteForm(instance=note)
@@ -71,3 +78,18 @@ def delete_note(request, note_id):
         note.delete()
         return redirect("index")
     return render(request, "delete_note.html", {'note': note})
+
+@login_required
+@csrf_protect
+def delete_image(request, image_id):
+    image = get_object_or_404(Images, id=image_id, note__user=request.user)
+    note_id = image.note.id
+    if request.method == "POST":
+        image.image.delete()
+        image.delete()
+    return redirect("edit_note", note_id=note_id)
+
+@login_required
+def serve_image(request, image_id):
+    image = get_object_or_404(Images, id=image_id, note__user=request.user)
+    return FileResponse(image.image.open('rb'))

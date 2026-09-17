@@ -6,3 +6,7 @@ class Note(models.Model):
     title = models.CharField(max_length=200)
     content = models.TextField()
     updated_at = models.DateTimeField(auto_now=True)
+
+class Images(models.Model):
+    note = models.ForeignKey(Note, on_delete=models.CASCADE, related_name='images')
+    image = models.ImageField(upload_to='notes/images/')
