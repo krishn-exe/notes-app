@@ -25,10 +25,25 @@ A Django-based notes application for creating, editing, deleting, and organizing
 
 ## App Flow
 
-- Register a new account at `app/register/`
-- Log in at `app/login/`
-- View all notes on the home page at `app/`
-- Create a note at `app/create/`
-- Edit a note at `app/edit/<note_id>/`
-- Delete a note at `app/delete/<note_id>/`
+- Register a new account at `main/register/`
+- Log in at `main/login/`
+- View all notes on the home page at `main/`
+- Create a note at `main/create/`
+- Edit a note at `main/edit/<note_id>/`
+- Delete a note at `main/delete/<note_id>/`
 - Delete attached images from the edit page
+
+## API ENDPOINTS
+
+| PATH | METHOD | PAYLOAD |
+|---|---|---|
+| `/api/` | `GET` | None |
+| `/api/register/` | `POST` | `{ "username": "alice", "password": "your-password" }` |
+| `/api/login/` | `POST` | `{ "username": "alice", "password": "your-password" }` |
+| `/api/logout/` | `POST` | `{ "refresh": "<refresh_token>" }` |
+| `/api/token/refresh/` | `POST` | `{ "refresh": "<refresh_token>" }` |
+| `/api/notes/` | `GET` | None |
+| `/api/notes/create/` | `POST` | `{ "title": "Note title", "content": "Note content", "image_url": "https://example.com/image.png" }` |
+| `/api/notes/edit/<note_id>/` | `GET` | None |
+| `/api/notes/edit/<note_id>/` | `PATCH` | Any fields to update: `{ "title": "Updated title", "content": "Updated content", "image_url": "https://example.com/image.png" }` |
+| `/api/notes/delete/<note_id>/` | `DELETE` or `POST` | None |
