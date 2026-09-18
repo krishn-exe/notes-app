@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/6.1/ref/settings/
 from pathlib import Path
 from os import getenv
 from dotenv import load_dotenv
+from datetime import timedelta
 
 #Load environment variables from .env file
 load_dotenv(override=True)
@@ -34,7 +35,7 @@ ALLOWED_HOSTS = [
     "notes-app-i98g.onrender.com",
     "localhost",
     "127.0.0.1",
-
+    "*",
 ]
 
 
@@ -49,6 +50,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'rest_framework',
+    'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',
 
     'main',
     'api',
@@ -69,6 +72,21 @@ MIDDLEWARE = [
 CSRF_TRUSTED_ORIGINS = [
     "https://notes-app-i98g.onrender.com",
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+}
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=1),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
+    'UPDATE_LAST_LOGIN': True,
+    'AUTH_HEADER_TYPES': ('Bearer',),
+}
 
 ROOT_URLCONF = 'notesApp.urls'
 
