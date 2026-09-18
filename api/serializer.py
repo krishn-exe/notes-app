@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
+from .models import apiNotes
 
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -15,3 +16,17 @@ class RegisterSerializer(serializers.ModelSerializer):
             password=validated_data['password'],
         )
         return user
+
+
+class LoginSerializer(serializers.Serializer):
+    username = serializers.CharField(required=True)
+    password = serializers.CharField(required=True, write_only=True)
+
+
+class NoteSerializer(serializers.ModelSerializer):
+    image_url = serializers.CharField(max_length=500, required=False, allow_blank=True, default='')
+
+    class Meta:
+        model = apiNotes
+        fields = ['id', 'title', 'content', 'image_url', 'updated_at']
+        read_only_fields = ['id', 'updated_at']

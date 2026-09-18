@@ -3,19 +3,27 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
-from .serializer import RegisterSerializer
+from django.contrib.auth import authenticate
+from django.shortcuts import get_object_or_404
+
+from .models import apiNotes
+from .serializer import RegisterSerializer, LoginSerializer, NoteSerializer
 
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def index(request):
     return Response({
-        'message': 'Welcome to the Notes App API',
+        'message': 'Welcome to the Notes App REST API',
         'endpoints': {
             'register': '/api/register/',
             'login': '/api/login/',
             'logout': '/api/logout/',
             'token_refresh': '/api/token/refresh/',
+            'notes': '/api/notes/',
+            'create_note': '/api/notes/create/',
+            'edit_note': '/api/notes/edit/<int:note_id>/',
+            'delete_note': '/api/notes/delete/<int:note_id>/',
         }
     })
 
@@ -44,16 +52,12 @@ def register(request):
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def login(request):
-    from django.contrib.auth import authenticate
+    serializer = LoginSerializer(data=request.data)
+    if not serializer.is_valid():
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    username = request.data.get('username')
-    password = request.data.get('password')
-
-    if not username or not password:
-        return Response(
-            {'error': 'Username and password are required.'},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
+    username = serializer.validated_data['username']
+    password = serializer.validated_data['password']
 
     user = authenticate(request=request, username=username, password=password)
     if user is None:
@@ -95,3 +99,45 @@ def logout(request):
             {'error': 'Invalid or expired refresh token.'},
             status=status.HTTP_400_BAD_REQUEST,
         )
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def FetchNotes(request):
+    notes = apiNotes.objects.filter(user=request.user).order_by('-updated_at')
+    serializer = NoteSerializer(notes, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def CreateNote(request):
+    serializer = NoteSerializer(data=request.data)
+    if serializer.is_valid():
+        serializer.save(user=request.user)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET','PATCH'])
+@permission_classes([IsAuthenticated])
+def EditNote(request, note_id):
+    note = get_object_or_404(apiNotes, id=note_id, user=request.user)
+
+    if request.method == 'GET':
+        serializer = NoteSerializer(note)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    partial = (request.method == 'PATCH')
+    serializer = NoteSerializer(note, data=request.data, partial=partial)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['DELETE', 'POST'])
+@permission_classes([IsAuthenticated])
+def DeleteNote(request, note_id):
+    note = get_object_or_404(apiNotes, id=note_id, user=request.user)
+    note.delete()
+    return Response({'message': 'Note deleted successfully.'}, status=status.HTTP_200_OK)
