@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login as auth_login, logout as auth_logout
 from django.contrib.auth.decorators import login_required
@@ -33,6 +35,10 @@ def login(request):
 def logout(request):
     auth_logout(request)
     return render(request, "logout.html")
+
+def favicon(request):
+    favicon_path = Path(__file__).resolve().parent / "templates" / "draw.png"
+    return FileResponse(favicon_path.open("rb"), content_type="image/png")
 
 @login_required
 def index(request):
