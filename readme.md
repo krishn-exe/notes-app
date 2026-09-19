@@ -33,15 +33,25 @@ A Django-based notes application for creating, editing, deleting, and organizing
 - Delete a note at `main/delete/<note_id>/`
 - Delete attached images from the edit page
 
+## Interactive API Documentation (Swagger UI)
+
+Interactive Swagger documentation is available at:
+- **Swagger UI**: `/api/docs/`
+- **OpenAPI Schema**: `/api/schema/`
+
+You can test every endpoint directly in the browser. For protected endpoints, click **Authorize** in Swagger UI and input your JWT token: `Bearer <your_access_token>`.
+
 ## API ENDPOINTS
 
 | PATH | METHOD | PAYLOAD |
 |---|---|---|
 | `/api/` | `GET` | None |
-| `/api/register/` | `POST` | `{ "username": "alice", "password": "your-password" }` |
+| `/api/register/` | `POST` | `{ "username": "alice", "email": "alice@example.com", "password": "your-password" }` |
+| `/api/verify-registration/` | `POST` | `{ "email": "alice@example.com", "otp": "123456" }` |
 | `/api/login/` | `POST` | `{ "username": "alice", "password": "your-password" }` |
 | `/api/logout/` | `POST` | `{ "refresh": "<refresh_token>" }` |
-| `/api/forgot-password/` | `POST` | `{ "username": "alice", "password": "new-password" }` |
+| `/api/forgot-password/request/` | `POST` | `{ "email": "alice@example.com" }` |
+| `/api/forgot-password/verify/` | `POST` | `{ "email": "alice@example.com", "otp": "123456", "password": "new-password" }` |
 | `/api/token/refresh/` | `POST` | `{ "refresh": "<refresh_token>" }` |
 | `/api/notes/` | `GET` | None |
 | `/api/notes/create/` | `POST` | `{ "title": "Note title", "content": "Note content", "image_url": "https://example.com/image.png" }` |

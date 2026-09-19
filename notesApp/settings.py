@@ -35,8 +35,14 @@ ALLOWED_HOSTS = [
     "notes-app-i98g.onrender.com",
     "localhost",
     "127.0.0.1",
-    "*",
+    "krishn.tech",
+    "www.krishn.tech",
+    "15.252.67.125",
+
 ]
+
+STATIC_URL = 'static/'
+
 
 
 # Application definition
@@ -82,10 +88,29 @@ REST_FRAMEWORK = {
 }
 
 SPECTACULAR_SETTINGS = {
-    'TITLE': 'Notes App API',
-    'DESCRIPTION': 'API documentation for the Notes App.',
+    'TITLE': 'Notes App REST API',
+    'DESCRIPTION': (
+        'Complete REST API documentation for Notes App.\n\n'
+        '### Authentication\n'
+        'Protected endpoints require a JWT Bearer token in the `Authorization` header:\n'
+        '```http\n'
+        'Authorization: Bearer <your_access_token>\n'
+        '```\n'
+        'To test protected routes in Swagger UI, click the **Authorize** button at the top right, '
+        'enter your access token obtained from `/api/login/` or `/api/verify-registration/`, and click Authorize.'
+    ),
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
+    'SWAGGER_UI_SETTINGS': {
+        'persistAuthorization': True,
+        'displayRequestDuration': True,
+        'filter': True,
+        'tryItOutEnabled': True,
+        'docExpansion': 'list',
+        'defaultModelsExpandDepth': 3,
+        'defaultModelExpandDepth': 3,
+    },
+    'COMPONENT_SPLIT_REQUEST': True,
 }
 
 SIMPLE_JWT = {
@@ -191,3 +216,13 @@ STORAGES = {
         'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage',
     },
 }
+
+# Email
+EMAIL_BACKEND = getenv('EMAIL_BACKEND', 'django.core.mail.backends.smtp.EmailBackend')
+EMAIL_HOST = getenv('EMAIL_HOST', 'smtp.gmail.com')
+EMAIL_PORT = int(getenv('EMAIL_PORT', '587'))
+EMAIL_USE_TLS = getenv('EMAIL_USE_TLS', 'True') == 'True'
+EMAIL_USE_SSL = getenv('EMAIL_USE_SSL', 'False') == 'True'
+EMAIL_HOST_USER = getenv('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = getenv('EMAIL_HOST_PASSWORD', '')
+DEFAULT_FROM_EMAIL = getenv('DEFAULT_FROM_EMAIL') or EMAIL_HOST_USER or 'Notes App <noreply@notesapp.com>'

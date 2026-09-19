@@ -5,9 +5,11 @@ from . import views
 urlpatterns = [
     path("", views.IndexView.as_view(), name="api_index"),
     path("register/", views.RegisterView.as_view(), name="api_register"),
+    path("verify-registration/", views.VerifyRegistrationView.as_view(), name="api_verify_registration"),
     path("login/", views.LoginView.as_view(), name="api_login"),
     path("logout/", views.LogoutView.as_view(), name="api_logout"),
-    path("forgot-password/", views.ForgotPasswordView.as_view(), name="api_forgot_password"),
+    path("forgot-password/request/", views.ForgotPasswordRequestView.as_view(), name="api_forgot_password_request"),
+    path("forgot-password/verify/", views.ForgotPasswordVerifyView.as_view(), name="api_forgot_password_verify"),
     path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
 
     path("notes/", views.FetchNotesView.as_view(), name="api_fetch_notes"),
