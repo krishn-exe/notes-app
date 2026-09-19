@@ -8,3 +8,4 @@ djangorestframework
 djangorestframework-simplejwt
 markdown
 django-filter
+drf-spectacular 
