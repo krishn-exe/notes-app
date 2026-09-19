@@ -38,12 +38,7 @@ ALLOWED_HOSTS = [
     "krishn.tech",
     "www.krishn.tech",
     "15.252.67.125",
-
 ]
-
-STATIC_URL = 'static/'
-
-
 
 # Application definition
 
@@ -193,6 +188,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.1/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 LOGIN_URL = 'login'
 
