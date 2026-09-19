@@ -23,6 +23,11 @@ class LoginSerializer(serializers.Serializer):
     password = serializers.CharField(required=True, write_only=True)
 
 
+class ForgotPasswordSerializer(serializers.Serializer):
+    username = serializers.CharField(required=True)
+    password = serializers.CharField(required=True, write_only=True)
+
+
 class NoteSerializer(serializers.ModelSerializer):
     image_url = serializers.CharField(max_length=500, required=False, allow_blank=True, default='')
 

@@ -41,9 +41,10 @@ A Django-based notes application for creating, editing, deleting, and organizing
 | `/api/register/` | `POST` | `{ "username": "alice", "password": "your-password" }` |
 | `/api/login/` | `POST` | `{ "username": "alice", "password": "your-password" }` |
 | `/api/logout/` | `POST` | `{ "refresh": "<refresh_token>" }` |
+| `/api/forgot-password/` | `POST` | `{ "username": "alice", "password": "new-password" }` |
 | `/api/token/refresh/` | `POST` | `{ "refresh": "<refresh_token>" }` |
 | `/api/notes/` | `GET` | None |
 | `/api/notes/create/` | `POST` | `{ "title": "Note title", "content": "Note content", "image_url": "https://example.com/image.png" }` |
 | `/api/notes/edit/<note_id>/` | `GET` | None |
 | `/api/notes/edit/<note_id>/` | `PATCH` | Any fields to update: `{ "title": "Updated title", "content": "Updated content", "image_url": "https://example.com/image.png" }` |
-| `/api/notes/delete/<note_id>/` | `DELETE` or `POST` | None |
+| `/api/notes/delete/<note_id>/` | `DELETE` | None |
