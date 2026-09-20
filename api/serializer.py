@@ -167,3 +167,10 @@ class ErrorResponseSerializer(serializers.Serializer):
 
 class DetailErrorResponseSerializer(serializers.Serializer):
     detail = serializers.CharField(read_only=True, help_text="Authentication or permission error detail")
+
+
+class PaginatedNoteResponseSerializer(serializers.Serializer):
+    count = serializers.IntegerField(help_text="Total number of notes.")
+    next = serializers.CharField(allow_null=True, required=False, help_text="URL for the next page of results.")
+    previous = serializers.CharField(allow_null=True, required=False, help_text="URL for the previous page of results.")
+    results = NoteSerializer(many=True, help_text="List of note objects.")

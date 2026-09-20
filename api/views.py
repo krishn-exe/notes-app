@@ -22,8 +22,10 @@ from .serializer import (
     MessageResponseSerializer,
     ErrorResponseSerializer,
     DetailErrorResponseSerializer,
+    PaginatedNoteResponseSerializer,
 )
 from .utils import generate_otp, send_otp_email
+from .pagination import NotesPagination
 
 
 @extend_schema(
@@ -442,15 +444,21 @@ class ForgotPasswordVerifyView(APIView):
 
 
 @extend_schema(
-    summary="Fetch all user notes",
+    summary="Fetch all user notes (paginated)",
     description=(
-        "Retrieves a list of all notes created by the currently authenticated user, "
+        "Retrieves a paginated list of all notes created by the currently authenticated user, "
         "ordered by most recently updated first.\n\n"
+        "**Query Parameters**:\n"
+        "- `page` (optional): Page number (default: 1)\n"
+        "- `page_size` (optional): Number of notes per page (default: 10, max: 100)\n\n"
         "Requires Bearer token authentication in the `Authorization` header."
     ),
     tags=["Notes CRUD"],
     responses={
-        200: NoteSerializer(many=True),
+        200: OpenApiResponse(
+            response=PaginatedNoteResponseSerializer,
+            description="Paginated list of notes with count, next, previous links, and results."
+        ),
         401: OpenApiResponse(
             response=DetailErrorResponseSerializer,
             description="Unauthorized: missing or invalid Bearer token."
@@ -459,9 +467,15 @@ class ForgotPasswordVerifyView(APIView):
 )
 class FetchNotesView(APIView):
     permission_classes = [IsAuthenticated]
+    pagination_class = NotesPagination
 
     def get(self, request):
         notes = apiNotes.objects.filter(user=request.user).order_by('-updated_at')
+        paginator = self.pagination_class()
+        page = paginator.paginate_queryset(notes, request, view=self)
+        if page is not None:
+            serializer = NoteSerializer(page, many=True)
+            return paginator.get_paginated_response(serializer.data)
         serializer = NoteSerializer(notes, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
