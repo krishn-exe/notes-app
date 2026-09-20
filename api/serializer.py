@@ -1,11 +1,38 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
+from django.core.validators import RegexValidator
 from .models import apiNotes
 
+# Regex Validators for Serializer Validation
+username_validator = RegexValidator(
+    regex=r'^[a-zA-Z0-9_]{3,30}$',
+    message='Username must be 3-30 characters long and contain only letters, numbers, and underscores.'
+)
+
+password_validator = RegexValidator(
+    regex=r'^(?=.*[A-Za-z])(?=.*\d).{8,}$',
+    message='Password must be at least 8 characters long and contain at least one letter and one number.'
+)
+
+otp_validator = RegexValidator(
+    regex=r'^\d{6}$',
+    message='OTP must be exactly 6 digits.'
+)
+
+
+# --- Request Serializers ---
 
 class RegisterSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(
+        validators=[username_validator],
+        help_text="Username (3-30 characters: letters, numbers, and underscores)."
+    )
     email = serializers.EmailField(required=True)
-    password = serializers.CharField(write_only=True)
+    password = serializers.CharField(
+        write_only=True,
+        validators=[password_validator],
+        help_text="Password (min 8 chars, at least one letter and one number)."
+    )
 
     class Meta:
         model = User
@@ -35,6 +62,7 @@ class VerifyRegistrationSerializer(serializers.Serializer):
         required=True,
         max_length=6,
         min_length=6,
+        validators=[otp_validator],
         help_text="The 6-digit verification code received via email."
     )
 
@@ -67,12 +95,14 @@ class ForgotPasswordVerifySerializer(serializers.Serializer):
         required=True,
         max_length=6,
         min_length=6,
+        validators=[otp_validator],
         help_text="The 6-digit password reset code received via email."
     )
     password = serializers.CharField(
         required=True,
         write_only=True,
-        help_text="Your new password."
+        validators=[password_validator],
+        help_text="Your new password (min 8 chars, at least one letter and one number)."
     )
 
 

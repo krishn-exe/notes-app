@@ -58,3 +58,8 @@ You can test every endpoint directly in the browser. For protected endpoints, cl
 | `/api/notes/edit/<note_id>/` | `GET` | None |
 | `/api/notes/edit/<note_id>/` | `PATCH` | Any fields to update: `{ "title": "Updated title", "content": "Updated content", "image_url": "https://example.com/image.png" }` |
 | `/api/notes/delete/<note_id>/` | `DELETE` | None |
+
+### Field Validation Rules
+- **Username**: `^[a-zA-Z0-9_]{3,30}$` (3-30 characters, letters, numbers, and underscores).
+- **Password**: `^(?=.*[A-Za-z])(?=.*\d).{8,}$` (at least 8 characters, at least one letter and one number).
+- **OTP**: `^\d{6}$` (exactly 6 digits).
