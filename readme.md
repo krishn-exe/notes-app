@@ -17,11 +17,47 @@ A Django-based notes application for creating, editing, deleting, and organizing
 - Python 3
 - Django 6
 - PostgreSQL
-- Django Storages
-- boto3
+- Redis
+- Docker & Docker Compose
+- Django REST Framework
+- drf-spectacular (Swagger / OpenAPI)
+- Django Storages & boto3
 - Pillow
 - Python-dotenv
-- Django rest Framework
+
+## Running with Docker Compose
+
+The easiest way to run the application with a dedicated local PostgreSQL database and Redis cache is via Docker Compose:
+
+1. **Start all services** (Django web server, PostgreSQL 16, Redis 7):
+   ```bash
+   docker compose up --build
+   ```
+   To run in the background (detached mode):
+   ```bash
+   docker compose up -d --build
+   ```
+
+2. **Check running containers**:
+   ```bash
+   docker compose ps
+   ```
+
+3. **Access services**:
+   - **Django API**: `http://localhost:8000/api/`
+   - **Swagger UI**: `http://localhost:8000/api/docs/`
+   - **PostgreSQL**: `localhost:5432` (`db: notes_app_db`, `user: postgres_user`, `password: postgres_password`)
+   - **Redis**: `localhost:6379`
+
+4. **Stop the containers**:
+   ```bash
+   docker compose down
+   ```
+   To stop and remove persistent database/cache volumes:
+   ```bash
+   docker compose down -v
+   ```
+
 
 ## App Flow
 

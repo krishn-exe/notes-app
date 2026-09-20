@@ -15,8 +15,8 @@ from os import getenv
 from dotenv import load_dotenv
 from datetime import timedelta
 
-#Load environment variables from .env file
-load_dotenv(override=True)
+# Load environment variables from .env file (system/Docker env vars take precedence)
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -35,9 +35,12 @@ ALLOWED_HOSTS = [
     "notes-app-i98g.onrender.com",
     "localhost",
     "127.0.0.1",
+    "0.0.0.0",
+    "web",
     "krishn.tech",
     "www.krishn.tech",
     "15.252.67.125",
+    "*",
 ]
 
 # Application definition
@@ -168,6 +171,14 @@ else:
 # Database
 # https://docs.djangoproject.com/en/6.1/ref/settings/#databases
 
+db_options = {}
+pg_sslmode = getenv('PG_SSLMODE')
+if not pg_sslmode and getenv('PG_HOST') and 'render.com' in getenv('PG_HOST', ''):
+    pg_sslmode = 'require'
+
+if pg_sslmode:
+    db_options['sslmode'] = pg_sslmode
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
@@ -175,8 +186,8 @@ DATABASES = {
         'USER': getenv('PG_USER'),
         'PASSWORD': getenv('PG_PASSWORD'),
         'HOST': getenv('PG_HOST'),
-        'PORT': getenv('PG_PORT'),
-        'OPTIONS': {'sslmode': 'require'},
+        'PORT': getenv('PG_PORT', '5432'),
+        'OPTIONS': db_options,
     }
 }
 
