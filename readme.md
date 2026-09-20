@@ -19,6 +19,7 @@ A Django-based notes application for creating, editing, deleting, and organizing
 - PostgreSQL
 - Redis
 - Docker & Docker Compose
+- Gunicorn (WSGI HTTP Server)
 - Django REST Framework
 - drf-spectacular (Swagger / OpenAPI)
 - Django Storages & boto3
