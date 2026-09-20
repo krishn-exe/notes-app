@@ -22,8 +22,40 @@ from .serializer import (
     MessageResponseSerializer,
     ErrorResponseSerializer,
     DetailErrorResponseSerializer,
+    PaginatedNoteResponseSerializer,
 )
+from django.core.cache import cache
 from .utils import generate_otp, send_otp_email
+from .pagination import NotesPagination
+
+
+# --- Cache Helpers ---
+
+def get_user_notes_cache_version(user_id: int) -> int:
+    """Retrieve or initialize the cache version for the user's notes."""
+    version_key = f"user_notes_version:{user_id}"
+    version = cache.get(version_key)
+    if version is None:
+        version = 1
+        cache.set(version_key, version, timeout=86400 * 30)  # 30 days
+    return version
+
+
+def invalidate_user_notes_cache(user_id: int) -> None:
+    """Invalidate all cached note pages for the user."""
+    version_key = f"user_notes_version:{user_id}"
+    try:
+        cache.incr(version_key)
+    except Exception:
+        current_v = cache.get(version_key, 1)
+        cache.set(version_key, current_v + 1, timeout=86400 * 30)
+
+    # If using django-redis backend, also purge matching keys directly
+    if hasattr(cache, 'delete_pattern'):
+        try:
+            cache.delete_pattern(f"*user_notes:{user_id}:*")
+        except Exception:
+            pass
 
 
 @extend_schema(
@@ -442,15 +474,21 @@ class ForgotPasswordVerifyView(APIView):
 
 
 @extend_schema(
-    summary="Fetch all user notes",
+    summary="Fetch all user notes (paginated)",
     description=(
-        "Retrieves a list of all notes created by the currently authenticated user, "
+        "Retrieves a paginated list of all notes created by the currently authenticated user, "
         "ordered by most recently updated first.\n\n"
+        "**Query Parameters**:\n"
+        "- `page` (optional): Page number (default: 1)\n"
+        "- `page_size` (optional): Number of notes per page (default: 10, max: 100)\n\n"
         "Requires Bearer token authentication in the `Authorization` header."
     ),
     tags=["Notes CRUD"],
     responses={
-        200: NoteSerializer(many=True),
+        200: OpenApiResponse(
+            response=PaginatedNoteResponseSerializer,
+            description="Paginated list of notes with count, next, previous links, and results."
+        ),
         401: OpenApiResponse(
             response=DetailErrorResponseSerializer,
             description="Unauthorized: missing or invalid Bearer token."
@@ -459,11 +497,35 @@ class ForgotPasswordVerifyView(APIView):
 )
 class FetchNotesView(APIView):
     permission_classes = [IsAuthenticated]
+    pagination_class = NotesPagination
 
     def get(self, request):
+        page = request.query_params.get('page', '1')
+        page_size = request.query_params.get('page_size', '10')
+
+        # 1. Check cache first (Cache-Aside pattern)
+        cache_version = get_user_notes_cache_version(request.user.id)
+        cache_key = f"user_notes:{request.user.id}:v_{cache_version}:p_{page}:s_{page_size}"
+
+        cached_response = cache.get(cache_key)
+        if cached_response is not None:
+            return Response(cached_response, status=status.HTTP_200_OK)
+
+        # 2. Cache miss: Query database
         notes = apiNotes.objects.filter(user=request.user).order_by('-updated_at')
+        paginator = self.pagination_class()
+        page_obj = paginator.paginate_queryset(notes, request, view=self)
+        if page_obj is not None:
+            serializer = NoteSerializer(page_obj, many=True)
+            response_data = paginator.get_paginated_response(serializer.data).data
+            # Cache for 10 minutes (600 seconds)
+            cache.set(cache_key, response_data, timeout=600)
+            return Response(response_data, status=status.HTTP_200_OK)
+
         serializer = NoteSerializer(notes, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        response_data = serializer.data
+        cache.set(cache_key, response_data, timeout=600)
+        return Response(response_data, status=status.HTTP_200_OK)
 
 
 @extend_schema(
@@ -499,6 +561,8 @@ class CreateNoteView(APIView):
         serializer = NoteSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save(user=request.user)
+            # Invalidate cached notes for this user
+            invalidate_user_notes_cache(request.user.id)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -565,6 +629,7 @@ class EditNoteView(APIView):
         serializer = NoteSerializer(note, data=request.data)
         if serializer.is_valid():
             serializer.save()
+            invalidate_user_notes_cache(request.user.id)
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -600,6 +665,7 @@ class EditNoteView(APIView):
         serializer = NoteSerializer(note, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
+            invalidate_user_notes_cache(request.user.id)
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -631,4 +697,5 @@ class DeleteNoteView(APIView):
     def delete(self, request, note_id):
         note = get_object_or_404(apiNotes, id=note_id, user=request.user)
         note.delete()
+        invalidate_user_notes_cache(request.user.id)
         return Response({'message': 'Note deleted successfully.'}, status=status.HTTP_200_OK)

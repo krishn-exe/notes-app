@@ -53,7 +53,7 @@ You can test every endpoint directly in the browser. For protected endpoints, cl
 | `/api/forgot-password/request/` | `POST` | `{ "email": "alice@example.com" }` |
 | `/api/forgot-password/verify/` | `POST` | `{ "email": "alice@example.com", "otp": "123456", "password": "new-password" }` |
 | `/api/token/refresh/` | `POST` | `{ "refresh": "<refresh_token>" }` |
-| `/api/notes/` | `GET` | None |
+| `/api/notes/` | `GET` | None (Supports `?page=1&page_size=10`) |
 | `/api/notes/create/` | `POST` | `{ "title": "Note title", "content": "Note content", "image_url": "https://example.com/image.png" }` |
 | `/api/notes/edit/<note_id>/` | `GET` | None |
 | `/api/notes/edit/<note_id>/` | `PATCH` | Any fields to update: `{ "title": "Updated title", "content": "Updated content", "image_url": "https://example.com/image.png" }` |
