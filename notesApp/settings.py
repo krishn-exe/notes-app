@@ -144,6 +144,16 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'notesApp.wsgi.application'
 
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/1",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    }
+}
+
 
 # Database
 # https://docs.djangoproject.com/en/6.1/ref/settings/#databases
