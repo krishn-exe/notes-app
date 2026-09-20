@@ -9,3 +9,4 @@ djangorestframework-simplejwt
 markdown
 django-filter
 drf-spectacular 
+django-redis

@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from django.core.validators import RegexValidator
+from drf_spectacular.utils import OpenApiExample, extend_schema_serializer
 from .models import apiNotes
 
 # Regex Validators for Serializer Validation
@@ -22,6 +23,19 @@ otp_validator = RegexValidator(
 
 # --- Request Serializers ---
 
+@extend_schema_serializer(
+    examples=[
+        OpenApiExample(
+            "Registration request",
+            value={
+                "username": "alice",
+                "email": "alice@example.com",
+                "password": "Password123",
+            },
+            request_only=True,
+        )
+    ]
+)
 class RegisterSerializer(serializers.ModelSerializer):
     username = serializers.CharField(
         validators=[username_validator],
