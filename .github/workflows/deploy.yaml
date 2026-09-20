@@ -2,9 +2,7 @@ name: Deploy to EC2
 
 on:
   push:
-    branches:
-      - production
-      - main
+    branches: [production]
   workflow_dispatch:
 
 jobs:
@@ -21,43 +19,6 @@ jobs:
           script: |
             set -e
             cd ~/notes-app
-
-            echo "=== Pulling latest changes from ${{ github.ref_name }} ==="
-            git fetch origin ${{ github.ref_name }}
-            git checkout ${{ github.ref_name }}
-            git pull origin ${{ github.ref_name }}
-
-            echo "=== Checking Docker installation ==="
-            if ! command -v docker >/dev/null 2>&1; then
-              echo "ERROR: Docker is not installed on this EC2 instance." >&2
-              echo "Please install Docker and Docker Compose on EC2 to deploy." >&2
-              exit 1
-            fi
-
-            # Determine docker command permissions
-            if docker info >/dev/null 2>&1; then
-              DOCKER="docker"
-            else
-              DOCKER="sudo docker"
-            fi
-
-            # Determine compose command syntax (v2 'docker compose' vs v1 'docker-compose')
-            if $DOCKER compose version >/dev/null 2>&1; then
-              COMPOSE="$DOCKER compose"
-            elif command -v docker-compose >/dev/null 2>&1 || sudo which docker-compose >/dev/null 2>&1; then
-              COMPOSE="$DOCKER-compose"
-            else
-              echo "ERROR: Docker Compose is not installed on this EC2 instance." >&2
-              exit 1
-            fi
-
-            echo "=== Building and starting Docker Compose services ==="
-            $COMPOSE up -d --build --remove-orphans
-
-            echo "=== Checking container status ==="
-            $COMPOSE ps
-
-            echo "=== Pruning unused dangling images ==="
-            $DOCKER image prune -f
-
-            echo "=== Deployment to EC2 completed successfully! ==="
+            git pull origin production
+            docker compose up -d --build
+            docker image prune -f
