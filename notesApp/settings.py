@@ -29,7 +29,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = getenv("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True if getenv("DEBUG") == "True" else False
+DEBUG = getenv("DEBUG", "False").strip().lower() in ("true", "1", "yes")
 
 ALLOWED_HOSTS = [
     "notes-app-i98g.onrender.com",
@@ -42,6 +42,9 @@ ALLOWED_HOSTS = [
     "15.252.67.125",
     "*",
 ]
+allowed_hosts_env = getenv("ALLOWED_HOSTS")
+if allowed_hosts_env:
+    ALLOWED_HOSTS.extend([h.strip() for h in allowed_hosts_env.split(",") if h.strip()])
 
 # Application definition
 
@@ -76,7 +79,14 @@ MIDDLEWARE = [
 
 CSRF_TRUSTED_ORIGINS = [
     "https://notes-app-i98g.onrender.com",
+    "http://localhost",
+    "http://127.0.0.1",
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
 ]
+csrf_origins_env = getenv("CSRF_TRUSTED_ORIGINS")
+if csrf_origins_env:
+    CSRF_TRUSTED_ORIGINS.extend([origin.strip() for origin in csrf_origins_env.split(",") if origin.strip()])
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
@@ -173,7 +183,7 @@ else:
 
 db_options = {}
 pg_sslmode = getenv('PG_SSLMODE')
-if not pg_sslmode and getenv('PG_HOST') and 'render.com' in getenv('PG_HOST', ''):
+if (not pg_sslmode or pg_sslmode == 'disable') and getenv('PG_HOST') and 'render.com' in getenv('PG_HOST', ''):
     pg_sslmode = 'require'
 
 if pg_sslmode:

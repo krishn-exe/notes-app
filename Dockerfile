@@ -25,4 +25,4 @@ COPY . /app/
 
 EXPOSE 8000
 
-CMD ["sh", "-c", "python manage.py migrate && gunicorn notesApp.wsgi:application --bind 0.0.0.0:8000 --workers 3 --threads 2 --reload --access-logfile -"]
+CMD ["sh", "-c", "python manage.py collectstatic --noinput && python manage.py migrate && gunicorn notesApp.wsgi:application --bind 0.0.0.0:8000 --workers 3 --threads 2 --reload --access-logfile -"]

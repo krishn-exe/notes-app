@@ -22,6 +22,7 @@ A secure, scalable REST API built with Django, Django REST Framework, and Gunico
 
 - **Backend**: Python 3.12, Django 6, Django REST Framework
 - **WSGI Server**: Gunicorn
+- **Reverse Proxy & Static Files**: Nginx (Alpine)
 - **Database**: PostgreSQL 16
 - **Cache & Throttling**: Redis 7, `django-redis`
 - **Containerization**: Docker & Docker Compose
@@ -33,7 +34,7 @@ A secure, scalable REST API built with Django, Django REST Framework, and Gunico
 
 ## Running Locally with Docker Compose
 
-Docker Compose automatically launches the entire stack: Django application (Gunicorn), local PostgreSQL database, and local Redis cache with health checks and persistent storage.
+Docker Compose automatically launches the entire stack: Nginx reverse proxy, Django application (Gunicorn), local PostgreSQL database, and local Redis cache with health checks and persistent storage.
 
 ### Prerequisites
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) (Windows/macOS) or Docker Engine + Docker Compose (Linux).
@@ -57,12 +58,13 @@ docker compose up -d --build
 On initial startup, Docker will:
 1. Pull and start `postgres:16-alpine` and `redis:7-alpine`.
 2. Build the Django `web` image with Gunicorn and all dependencies.
-3. Automatically apply all database migrations (`python manage.py migrate`).
-4. Start Gunicorn on `http://0.0.0.0:8000`.
+3. Automatically collect static files (`python manage.py collectstatic --noinput`) and apply database migrations (`python manage.py migrate`).
+4. Start Nginx reverse proxy on port `80` (proxying to Gunicorn on port `8000`).
 
 ### 3. Service URLs & Ports
-- **REST API**: `http://localhost:8000/api/`
-- **Swagger Documentation**: `http://localhost:8000/api/docs/`
+- **REST API (via Nginx)**: `http://localhost/api/`
+- **Swagger Documentation**: `http://localhost/api/docs/`
+- **Direct Gunicorn (Dev)**: `http://localhost:8000/api/docs/`
 - **PostgreSQL**: `localhost:5432` (`db: notes_app_db`, `user: postgres_user`, `password: postgres_password`)
 - **Redis**: `localhost:6379`
 
@@ -149,22 +151,12 @@ To deploy manually or perform initial server setup on EC2:
    docker compose up -d --build
    ```
 
-6. **Configure Nginx Reverse Proxy (Optional)**:
-   Forward external HTTP/HTTPS traffic (port 80/443) to the Docker container on port 8000:
-   ```nginx
-   server {
-       listen 80;
-       server_name yourdomain.com;
+6. **Access Application & Nginx**:
+   The Docker stack includes a containerized Nginx reverse proxy listening on port `80`:
+   - Access the API: `http://<EC2_PUBLIC_IP>/api/`
+   - Access Swagger Docs: `http://<EC2_PUBLIC_IP>/api/docs/`
 
-       location / {
-           proxy_pass http://127.0.0.1:8000;
-           proxy_set_header Host $host;
-           proxy_set_header X-Real-IP $remote_addr;
-           proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-           proxy_set_header X-Forwarded-Proto $scheme;
-       }
-   }
-   ```
+   *(Optional: SSL/TLS with Certbot)*: If you map a custom domain name and want HTTPS/SSL on EC2, you can terminate SSL on the EC2 host using Certbot or map port `443` to Nginx with SSL certificates.
 
 ---
 

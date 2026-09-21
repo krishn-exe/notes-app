@@ -4,15 +4,15 @@ services:
     container_name: notes_postgres
     restart: unless-stopped
     environment:
-      POSTGRES_DB: notes_app_db
-      POSTGRES_USER: postgres_user
-      POSTGRES_PASSWORD: postgres_password
+      POSTGRES_DB: ${PG_NAME:-notes_app_db}
+      POSTGRES_USER: ${PG_USER:-postgres_user}
+      POSTGRES_PASSWORD: ${PG_PASSWORD:-postgres_password}
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres_user -d notes_app_db"]
+      test: ["CMD-SHELL", "pg_isready -U ${PG_USER:-postgres_user} -d ${PG_NAME:-notes_app_db}"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -35,27 +35,56 @@ services:
     build: .
     container_name: notes_web
     restart: unless-stopped
-    ports:
-      - "8000:8000"
     volumes:
       - .:/app
+      - static_volume:/app/staticfiles
+    env_file:
+      - path: .env
+        required: false
     environment:
-      - DEBUG=True
-      - SECRET_KEY=django-insecure-docker-local-dev-secret-key
-      - PG_NAME=notes_app_db
-      - PG_USER=postgres_user
-      - PG_PASSWORD=postgres_password
-      - PG_HOST=db
-      - PG_PORT=5432
-      - PG_SSLMODE=disable
-      - REDIS_URL=redis://redis:6379/1
-      - EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend
+      - DEBUG=${DEBUG:-True}
+      - SECRET_KEY=${SECRET_KEY:-django-insecure-docker-local-dev-secret-key}
+      - PG_NAME=${PG_NAME:-notes_app_db}
+      - PG_USER=${PG_USER:-postgres_user}
+      - PG_PASSWORD=${PG_PASSWORD:-postgres_password}
+      - PG_HOST=${PG_HOST:-db}
+      - PG_PORT=${PG_PORT:-5432}
+      - PG_SSLMODE=${PG_SSLMODE:-}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379/1}
+      - EMAIL_BACKEND=${EMAIL_BACKEND:-django.core.mail.backends.smtp.EmailBackend}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
+      - AWS_STORAGE_BUCKET_NAME=${AWS_STORAGE_BUCKET_NAME:-}
+      - AWS_S3_REGION_NAME=${AWS_S3_REGION_NAME:-}
+      - EMAIL_HOST=${EMAIL_HOST:-smtp.gmail.com}
+      - EMAIL_PORT=${EMAIL_PORT:-587}
+      - EMAIL_USE_TLS=${EMAIL_USE_TLS:-True}
+      - EMAIL_USE_SSL=${EMAIL_USE_SSL:-False}
+      - EMAIL_HOST_USER=${EMAIL_HOST_USER:-}
+      - EMAIL_HOST_PASSWORD=${EMAIL_HOST_PASSWORD:-}
+      - DEFAULT_FROM_EMAIL=${DEFAULT_FROM_EMAIL:-}
+      - CSRF_TRUSTED_ORIGINS=${CSRF_TRUSTED_ORIGINS:-}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS:-}
     depends_on:
       db:
         condition: service_healthy
       redis:
         condition: service_healthy
 
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: notes_nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "8000:80"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - static_volume:/app/staticfiles:ro
+    depends_on:
+      - web
+
 volumes:
   postgres_data:
   redis_data:
+  static_volume:
