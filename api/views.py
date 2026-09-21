@@ -90,6 +90,7 @@ def invalidate_user_notes_cache(user_id: int) -> None:
     }
 )
 class IndexView(APIView):
+    authentication_classes = []
     permission_classes = [AllowAny]
 
     def get(self, request):
@@ -134,6 +135,7 @@ class IndexView(APIView):
     }
 )
 class RegisterView(APIView):
+    authentication_classes = []
     permission_classes = [AllowAny]
 
     def post(self, request):
@@ -145,7 +147,15 @@ class RegisterView(APIView):
 
             otp = generate_otp()
             EmailOTP.objects.create(email=user.email, otp=otp, purpose='registration')
-            send_otp_email(user.email, otp, 'registration')
+            try:
+                send_otp_email(user.email, otp, 'registration')
+            except Exception as e:
+                import logging
+                logging.getLogger(__name__).error(f"Failed to send OTP email: {e}")
+                return Response({
+                    'error': 'Account created, but failed to send verification email. Please check server SMTP credentials.',
+                    'detail': str(e) if settings.DEBUG else None
+                }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
             return Response({
                 'message': 'Registration successful. An OTP has been sent to your email to verify your account.',
@@ -186,6 +196,7 @@ class RegisterView(APIView):
     }
 )
 class VerifyRegistrationView(APIView):
+    authentication_classes = []
     permission_classes = [AllowAny]
 
     def post(self, request):
@@ -267,6 +278,7 @@ class VerifyRegistrationView(APIView):
     }
 )
 class LoginView(APIView):
+    authentication_classes = []
     permission_classes = [AllowAny]
 
     def post(self, request):
@@ -379,6 +391,7 @@ class LogoutView(APIView):
     }
 )
 class ForgotPasswordRequestView(APIView):
+    authentication_classes = []
     permission_classes = [AllowAny]
 
     def post(self, request):
@@ -399,7 +412,15 @@ class ForgotPasswordRequestView(APIView):
 
         otp = generate_otp()
         EmailOTP.objects.create(email=email, otp=otp, purpose='forgot_password')
-        send_otp_email(email, otp, 'forgot_password')
+        try:
+            send_otp_email(email, otp, 'forgot_password')
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).error(f"Failed to send password reset OTP: {e}")
+            return Response({
+                'error': 'Failed to send password reset email. Please check server SMTP credentials.',
+                'detail': str(e) if settings.DEBUG else None
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         return Response({
             'message': 'Password reset OTP has been sent to your email.',
@@ -431,6 +452,7 @@ class ForgotPasswordRequestView(APIView):
     }
 )
 class ForgotPasswordVerifyView(APIView):
+    authentication_classes = []
     permission_classes = [AllowAny]
 
     def post(self, request):
